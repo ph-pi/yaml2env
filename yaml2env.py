@@ -11,7 +11,7 @@ def scalars(node: dict) -> dict[str, any]:
     return {k:v for k, v in node.items() if isinstance(v, (str, int, float, bool))}
 
 def children_nodes(node:dict) -> list[str]:
-    return [k for k, v in node.items() if not isinstance(v, (str, int, float, bool))]
+    return [k for k, v in node.items() if isinstance(v, dict)]
 
 def walk(node, path, parents, children, depth=0):
     max_depth = len(path) - 1
@@ -53,14 +53,18 @@ def walk(node, path, parents, children, depth=0):
 
 
 parser = argparse.ArgumentParser(description="")
-parser.add_argument('filename', help="YAML filename")
 parser.add_argument('path', help="Path to the YAML node. Use # as separator")
+parser.add_argument('--filename', required=False, default=0, help="a YAML file. Otherwise, stdin will be used.")
 parser.add_argument('--parents', action=argparse.BooleanOptionalAction, default=True, help="Include parents' vars")
 parser.add_argument('--children', action=argparse.BooleanOptionalAction, default=False, help="Include children's vars")
 args = parser.parse_args()
 
-with open(args.filename) as f:
-    node = yaml.safe_load(f)
+with open(args.filename, mode='r') as f:
+    try:
+        node = yaml.safe_load(f)    
+    except:
+        print("Can't parse YAML source", file=sys.stderr)
+        exit(1)
 
     path = args.path.strip().split('#')
     path = [p for i,p in enumerate(['']+path) if i==0 or p.strip() != "" ]
